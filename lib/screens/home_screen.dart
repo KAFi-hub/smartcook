@@ -21,11 +21,11 @@ class _HomeScreenState extends State<HomeScreen> {
  // home_screen.dart
 
 final List<Widget> pages = const [
-  Center(child: Text("Welcom Home Page")),
-  Center(child: Text("Welcome Inventory Page")),
-  Center(child: Text("Welcome to Scan Page")),
-  Center(child: Text("Welcome to Recipes Page")),
-  Center(child: Text("Welcome to Shopping List Page")),
+  Center(child: Text("Welcome Home Page")),
+  InventoryPage(), 
+ ScanPage(),
+  RecipesPage(),
+ ListPage(),
 ];
 
   void onTabTapped(int index) {
