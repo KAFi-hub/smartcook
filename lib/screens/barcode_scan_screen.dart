@@ -4,6 +4,6 @@ class ScanPage extends StatelessWidget {
   const ScanPage({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text("📷 Scan Page"));
+    return const Center(child: Text("Welcome to Scan Page"));
   }
 }
