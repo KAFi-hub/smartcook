@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:smartcook/providers/ingredient_provider.dart';
+import 'package:smartcook/services/api_service.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import 'dart:async';
 
 class AddIngredientScreen extends StatefulWidget {
   const AddIngredientScreen({super.key});
@@ -19,6 +23,82 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
 
   final Color primaryDark = const Color(0xFF064439);
   final Color bgColor = const Color(0xFFF8F9FA);
+
+  Timer? _debounce;
+  bool _isLoadingAI = false;
+
+   // Valeurs nutritionnelles récupérées de l'IA
+  double _calories = 0, _proteins = 0, _carbs = 0, _fats = 0;
+
+ @override
+  void initState() {
+    super.initState();
+    // Ecouter les changements du nom pour l'analyse IA
+    _nameController.addListener(_onNameChanged);
+  }
+
+  void _onNameChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    if (_nameController.text.isEmpty) {
+      Provider.of<IngredientProvider>(context, listen: false).resetNutrition();
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 800), () {
+      // Appelle le provider
+      Provider.of<IngredientProvider>(context, listen: false)
+          .fetchNutrition(_nameController.text);
+    });
+  }
+
+  Future<void> _fetchNutritionAI(String name) async {
+    setState(() => _isLoadingAI = true);
+    try {
+      final data = await ApiService().analyzeIngredient(name);
+      setState(() {
+        _calories = (data['calories'] as num).toDouble();
+        _proteins = (data['proteines'] as num).toDouble();
+        _carbs = (data['glucides'] as num).toDouble();
+        _fats = (data['lipides'] as num).toDouble();
+      });
+    } finally {
+      setState(() => _isLoadingAI = false);
+    }
+  }
+
+
+  Future<void> _handleSave() async {
+    final nutri = Provider.of<IngredientProvider>(context, listen: false);
+    final data = {
+      "idInventaire": 1, // À dynamiser selon l'utilisateur connecté
+      "nom": _nameController.text,
+      "quantite": double.tryParse(_qtyController.text) ?? 0,
+      "unite": _selectedUnit,
+      "type": _selectedType,
+      "dateExpiration": _expiryController.text,
+      "calories": nutri.calories,
+      "proteines": nutri.proteins,
+      "glucides": nutri.carbs,
+      "lipides": nutri.fats,
+      "allergenes": nutri.allergens, 
+      "marque": nutri.brand,         
+      "categorie": nutri.category,   
+      "imageUrl": nutri.imageUrl,     
+    };
+
+    bool success = await ApiService().saveIngredient(data);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ingrédient ajouté avec succès !"), backgroundColor: Colors.green)
+      );
+      Navigator.pop(context);
+    }else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur lors de la sauvegarde"), backgroundColor: Colors.red)
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -53,13 +133,14 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
       setState(() {
         // Formate la date en mm/dd/yyyy pour le contrôleur
         _expiryController.text =
-            "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
+        "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final nutriProvider = Provider.of<IngredientProvider>(context);
     return Scaffold(
       backgroundColor: bgColor,
       appBar: const CustomAppBar(),
@@ -198,17 +279,32 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
                         const SizedBox(height: 15),
                         Row(
                           children: [
-                            _buildStatCard("Calories", "0", "kcal"),
+                            _buildStatCard(
+                              "Calories", 
+                              nutriProvider.isLoading ? "..." : nutriProvider.calories.toStringAsFixed(0),
+                              "kcal"
+                            ),
                             const SizedBox(width: 10),
-                            _buildStatCard("Proteins", "0", "g"),
+                            _buildStatCard(
+                              "Proteins", 
+                              nutriProvider.isLoading ? "..." : nutriProvider.proteins.toStringAsFixed(0),
+                              "g"
+                            ),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            _buildStatCard("Carbs", "0", "g"),
+                            _buildStatCard(
+                              "Carbs",
+                              nutriProvider.isLoading ? "..." : nutriProvider.carbs.toStringAsFixed(1),
+                              "g"
+                            ),
                             const SizedBox(width: 10),
-                            _buildStatCard("Fats", "0", "g"),
+                            _buildStatCard(
+                              "Fats",
+                              nutriProvider.isLoading ? "..." : nutriProvider.fats.toStringAsFixed(1),
+                              "g"),
                           ],
                         ),
                       ],
@@ -280,7 +376,7 @@ class _AddIngredientScreenState extends State<AddIngredientScreen> {
                   ),
                   elevation: 0,
                 ),
-                onPressed: () {},
+                onPressed:  _nameController.text.isEmpty ? null : _handleSave,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
