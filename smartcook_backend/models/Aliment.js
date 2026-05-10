@@ -13,7 +13,6 @@ class Aliment {
          ORDER BY a.dateExpiration ASC`,
         [userId]
       );
-      // ✅ Toujours retourner un tableau, même vide
       return rows || [];
     } catch (error) {
       console.error('Erreur findAllByUser:', error);
