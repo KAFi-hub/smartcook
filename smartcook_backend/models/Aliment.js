@@ -38,41 +38,59 @@ class Aliment {
   }
 
   // Ajouter un aliment
+
   static async create(userId, data) {
-    try {
-      // Récupérer ou créer l'inventaire
-      const inventory = await Inventory.getOrCreate(userId);
-      
-      const {
+    const inventory = await Inventory.getOrCreate(userId);
+
+    const {
+      nom,
+      quantite,
+      unite,
+      type,
+      dateExpiration,
+      calories,
+      proteines,
+      glucides,
+      lipides,
+      allergenes,
+      marque,
+      categorie,
+      barcode,
+      imageUrl
+    } = data;
+
+    const [result] = await db.query(
+      `INSERT INTO aliment 
+       (idInventaire, nom, quantite, unite, type, dateExpiration,
+        calories, proteines, glucides, lipides, allergenes, marque,
+        categorie, barcode, imageUrl, statut)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        inventory.id,
         nom,
         quantite,
         unite,
         type,
         dateExpiration,
-        calories,
-        proteines,
-        glucides,
-        lipides,
-        barcode,
-        imageUrl
-      } = data;
+        calories ?? null,
+        proteines ?? null,
+        glucides ?? null,
+        lipides ?? null,
+        allergenes ?? null,
+        marque ?? null,
+        categorie ?? null,
+        barcode ?? null,
+        imageUrl ?? null,
+        'disponible'
+      ]
+    );
 
-      const [result] = await db.query(
-        `INSERT INTO aliment 
-         (idInventaire, nom, quantite, unite, type, dateExpiration, 
-          calories, proteines, glucides, lipides, barcode, imageUrl, statut)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [inventory.id, nom, quantite, unite, type, dateExpiration,
-         calories || null, proteines || null, glucides || null, lipides || null, 
-         barcode || null, imageUrl || null, 'disponible']
-      );
-
-      return result.insertId;
-    } catch (error) {
+    return result.insertId;
+  }catch (error) {
       console.error('Erreur create:', error);
       throw error;
     }
-  }
+  
 
   // Mettre à jour un aliment
   static async update(id, userId, data) {
