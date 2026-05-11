@@ -3,6 +3,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes'); 
+const alimentRoutes = require('./routes/alimentRoutes');
 
 const app = express();
 
@@ -14,8 +15,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// 2. Middleware de Logging
+// 2. Middleware de Logging (pour voir les requêtes de Flutter dans ta console)
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     if (req.body && Object.keys(req.body).length > 0) {
@@ -26,8 +26,9 @@ app.use((req, res, next) => {
 
 // 3. Routes API
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/inventory', inventoryRoutes); 
+app.use('/api/user', userRoutes);
+app.use('/api/aliments', alimentRoutes);
 
 app.get('/', (req, res) => {
     res.send("SmartCook API is running...");

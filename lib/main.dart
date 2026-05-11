@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'screens/register_screen.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ingredient_provider.dart';  
 import 'providers/recipe_provider.dart';
+import 'screens/main_screen.dart';
 
 void main() {
   runApp(const SmartCookApp());
@@ -24,7 +23,7 @@ class SmartCookApp extends StatelessWidget {
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: RegisterScreen(),
+        home: MainScreen(),
       ),
     );
   }
