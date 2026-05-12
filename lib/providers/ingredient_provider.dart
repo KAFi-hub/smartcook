@@ -1,14 +1,69 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../models/ingredient_model.dart';
 import '../services/ingredient_service.dart';
 import '../services/image_service.dart';
 
-class IngredientProvider extends ChangeNotifier {
+class IngredientProvider with ChangeNotifier {
+  final ApiService _apiService = ApiService();
+
   final IngredientService _service = IngredientService();
 
   List<Ingredient> _ingredients = [];
   bool _isLoading = false;
   String? _errorMessage;
+
+
+  double calories = 0, proteins = 0, carbs = 0, fats = 0;
+  String category = "", allergens = "", brand = "", imageUrl = "";
+
+  void resetNutrition() {
+    calories = 0; proteins = 0; carbs = 0; fats = 0;
+    notifyListeners();
+  }
+
+  void clearData() {
+  _ingredients = [];
+  _isLoading = false;
+  _errorMessage = null;
+
+  calories = 0;
+  proteins = 0;
+  carbs = 0;
+  fats = 0;
+
+  category = "";
+  allergens = "";
+  brand = "";
+  imageUrl = "";
+
+  notifyListeners();
+}
+
+  Future<void> fetchNutrition(String name) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final data = await _apiService.analyzeIngredient(name);
+      calories = (data['calories'] as num).toDouble();
+      proteins = (data['proteines'] as num).toDouble();
+      carbs = (data['glucides'] as num).toDouble();
+      fats = (data['lipides'] as num).toDouble();
+
+      // Récupération des infos IA
+      category = data['categorie'] ?? "Inconnu";
+      allergens = data['allergenes'] ?? "Aucun";
+      brand = data['marque'] ?? "Générique";
+      imageUrl = data['imageUrl'] ?? "";
+      
+    } catch (e) {
+      print("Erreur Provider: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   List<Ingredient> get ingredients => _ingredients;
   bool get isLoading => _isLoading;
