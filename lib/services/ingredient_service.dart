@@ -10,7 +10,7 @@ class IngredientService {
         Uri.parse(ApiConstants.inventory),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer  $token',
         },
       );
       if (response.statusCode == 200) {

@@ -436,19 +436,22 @@ class _ScanPageState extends State<ScanPage> {
           onPressed: _hasResult
               ? () async {
                   final prefs = await SharedPreferences.getInstance();
-                  final token = prefs.getString('token') ?? '';
-                  print("TOKEN: $token");
-                  // Ici, on utilise les noms de variables de ton écran
-                  // Le service s'occupera de transformer 'name' en 'nom'
+                  final storedToken =
+                      prefs.getString('token') ??
+                      ''; // Vérifie bien 'token' ici
+
+                  print(
+                    "TOKEN RÉCUPÉRÉ: $storedToken",
+                  ); // DEBUG : Vérifie s'il n'est pas vide dans la console
+
                   final Map<String, dynamic> itemData = {
                     'name': _productName,
-                    'quantity': 1, // On met 1 par défaut
-                    'unit':
-                        _productQty, // On passe la quantité brute (ex: "500g")
+                    'quantity': 1,
+                    'unit': _productQty,
                   };
 
                   final success = await IngredientService.addItem(
-                    token,
+                    storedToken,
                     itemData,
                   );
 
