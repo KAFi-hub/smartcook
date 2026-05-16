@@ -2,6 +2,7 @@ const Recipe = require('../models/Recipe');
 const Aliment = require('../models/Aliment');
 const Profile = require('../models/Profile');
 const aiService = require('../services/aiService');
+const recipeImageAiService = require('../services/recipeImageAiService');
 
 exports.refreshRecipes = async (req, res) => {
     try {
@@ -18,17 +19,37 @@ exports.refreshRecipes = async (req, res) => {
             return res.status(400).json({ message: "Ajoutez au moins 2 ingrédients pour générer des recettes." });
         }
 
-        // 3. Appeler l'IA avec ces données réelles
+        // 3. Gemini analyse le profil et génère les recettes
         const generatedRecipes = await aiService.generateRecipesFromData(profile, availableIngredients);
 
-        if (!generatedRecipes) {
+        if (!generatedRecipes || generatedRecipes.length === 0) {
             return res.status(500).json({ message: "L'IA n'a pas pu générer de recettes." });
         }
 
-        // 4. Nettoyer les anciennes recettes et sauvegarder les nouvelles
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 4. Générer une image IA stable correspondant à chaque recette Gemini
+        const recipesWithImages = [];
+        for (const r of generatedRecipes) {
+            const imageUrl = await recipeImageAiService.generateRecipeImage(r, req);
+            try {
+                console.log(`Génération image pour: ${r.nom}`);
+                const imageUrl = await recipeImageAiService.generateRecipeImage(r, req);
+                recipesWithImages.push({ 
+                    ...r,
+                    imageUrl: imageUrl 
+                });
+
+                // Petite pause de 1 seconde pour ne pas saturer le serveur d'images
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch (err) {
+                recipesWithImages.push({ ...r, imageUrl: "https://via.placeholder.com/800x600.png?text=Image+Non+Disponible" });
+            }
+        }
+        // 5. Nettoyer les anciennes recettes et sauvegarder les nouvelles
         await Recipe.deleteAllByUserId(userId);
         
-        const recipesToSave = generatedRecipes.map(r => [
+        const recipesToSave = recipesWithImages.map(r => [
             userId, r.nom, r.imageUrl, r.typeRepas, r.tempsPreparation, r.difficulte, 
             r.nbPersonnes, r.etapes, r.calories, r.proteines, r.glucides, 
             r.lipides, r.benefices, r.conseilsSante, r.scoreCompatibilite
@@ -36,7 +57,7 @@ exports.refreshRecipes = async (req, res) => {
 
         await Recipe.bulkCreate(recipesToSave);
 
-        res.json({ message: "Nouvelles recettes générées !", recipes: generatedRecipes });
+        res.json({ message: "Nouvelles recettes générées !", recipes: recipesWithImages });
 
     } catch (error) {
         console.error("Refresh Error:", error);

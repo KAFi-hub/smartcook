@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 exports.generateRecipesFromData = async (profile, ingredients) => {
     // Utilisation de Gemini 1.5 Flash (rapide et efficace pour le JSON)
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         generationConfig: { responseMimeType: "application/json" } // Force la sortie en JSON
     });
 
@@ -22,8 +22,10 @@ exports.generateRecipesFromData = async (profile, ingredients) => {
     const ingredientsList = ingredients.map(i => `${i.quantite} ${i.unite} de ${i.nom}`).join(", ");
 
     const prompt = `
-    Tu es un expert en nutrition et chef cuisinier. 
-    CONSIGNE : Génère 3 recettes basées EXCLUSIVEMENT sur ces ingrédients.
+    Tu es un expert en nutrition, chef cuisinier et food stylist.
+    CONSIGNE : Génère 3 recettes réalistes, mangeables et visuellement cohérentes basées EXCLUSIVEMENT sur ces ingrédients.
+    N'invente pas d'ingrédients principaux absents. Tu peux seulement supposer eau, sel, poivre et épices simples.
+    Ne donne pas de recette "non recommandée", "incompatible" ou impossible : trouve la meilleure utilisation culinaire possible.
     
     ${healthContext}
     
@@ -33,7 +35,7 @@ exports.generateRecipesFromData = async (profile, ingredients) => {
     [
       {
         "nom": "Nom court",
-        "imageUrl": "Génère une URL Unsplash réaliste basée sur le nom de la recette au format : https://source.unsplash.com/800x600/?food,[nom_de_la_recette_en_anglais]",
+        "imagePrompt": "Detailed English food photography prompt describing exactly the final plated dish, visible main ingredients, colors, texture, and serving style. No text, no logo, no packaging. Example: 'grilled chicken rice bowl with tomato slices, herbs, white plate, natural light'",
         "typeRepas": "déjeuner/dîner",
         "tempsPreparation": minutes,
         "difficulte": "facile/moyen",
