@@ -27,7 +27,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
 
-
   @override
   void initState() {
     super.initState();
@@ -88,47 +87,41 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
- @override
-Widget build(BuildContext context) {
-  final pages = [
-    HomePage(
-      result: widget.result,
-      onNavigate: onTabTapped,
-    ),
-    const InventoryPage(),
-    const BarcodeScanScreen(),
-    const RecipesPage(),
-    const ListPage(),
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      HomePage(result: widget.result, onNavigate: onTabTapped),
+      const InventoryPage(),
+      const BarcodeScanScreen(),
+      const RecipesPage(),
+      const ListPage(),
 
-    AddIngredientScreen(
-      onSave: () async {
-        await Provider.of<IngredientProvider>(
-          context,
-          listen: false,
-        ).fetchIngredients();
+      AddIngredientScreen(
+        onSave: () async {
+          await Provider.of<IngredientProvider>(
+            context,
+            listen: false,
+          ).fetchIngredients();
 
-        onTabTapped(1);
-      },
-    ),
+          onTabTapped(1);
+        },
+      ),
 
-    const AiScanScreen(),
-  ];
+      const AiScanScreen(),
+    ];
 
-  final bottomNavIndex = currentIndex <= 4 ? currentIndex : 0;
+    final bottomNavIndex = currentIndex <= 4 ? currentIndex : 0;
 
-  return Scaffold(
-    backgroundColor: const Color(0xFFF8F9FA),
-    appBar: const CustomAppBar(),
-    body: IndexedStack(
-      index: currentIndex,
-      children: pages,
-    ),
-    bottomNavigationBar: CustomBottomNav(
-      currentIndex: bottomNavIndex,
-      onTap: onTabTapped,
-    ),
-  );
-}
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: const CustomAppBar(),
+      body: IndexedStack(index: currentIndex, children: pages),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: bottomNavIndex,
+        onTap: onTabTapped,
+      ),
+    );
+  }
 }
 
 class HomePage extends StatelessWidget {
@@ -298,7 +291,7 @@ class HomePage extends StatelessWidget {
               subtitle: suggestedRecipe.benefices,
               badge:
                   "${suggestedRecipe.difficulte} • ${suggestedRecipe.tempsPreparation} min",
-              imageUrl: recipeProvider.getRecipeImage(suggestedRecipe.nom),
+              imageUrl: suggestedRecipe.imageUrl ?? "",
               onTap: () {
                 Navigator.push(
                   context,
