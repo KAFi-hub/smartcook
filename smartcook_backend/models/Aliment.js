@@ -82,9 +82,9 @@ class Aliment {
   }
 
   // Modifier un aliment
-  static async update(id, userId, data) {
+    static async update(id, userId, data) {
     try {
-      const {
+      const { 
         nom, quantite, unite, type, dateExpiration,
         calories, proteines, glucides, lipides,
         allergenes, marque, categorie, barcode, imageUrl, statut

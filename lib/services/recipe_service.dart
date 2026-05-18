@@ -1,6 +1,5 @@
 import '../models/recipe_model.dart';
 import '../models/ingredient_model.dart';
-import 'image_service.dart';
 
 class RecipeService {
 
@@ -117,6 +116,16 @@ class RecipeService {
   }
 
   String getRecipeImage(String recipeName) {
-    return ImageService.getMealDbImage(recipeName);
+    final name = recipeName.toLowerCase();
+
+    if (name.contains('tomato')) {
+      return 'https://www.themealdb.com/images/ingredients/Tomato.png';
+    }
+
+    if (name.contains('chicken')) {
+      return 'https://www.themealdb.com/images/ingredients/Chicken.png';
+    }
+
+    return 'https://www.themealdb.com/images/ingredients/Chicken.png';
   }
 }

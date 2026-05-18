@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/ingredient_model.dart';
 import '../services/ingredient_service.dart';
-import '../services/image_service.dart';
 
 class IngredientProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -68,6 +67,16 @@ final data = await _apiService.analyzeIngredient(name, type);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  String _defaultIngredientImage(String name) {
+    final ingredientName = name.trim();
+
+    if (ingredientName.isEmpty) {
+      return 'https://www.themealdb.com/images/ingredients/Chicken.png';
+    }
+
+    return 'https://www.themealdb.com/images/ingredients/${Uri.encodeComponent(ingredientName)}.png';
+  }
+
   // -------- Getters pour HomeScreen --------
 
   int get totalItems => _ingredients.length;
@@ -113,8 +122,7 @@ Future<void> fetchIngredients() async {
 
     for (var ingredient in _ingredients) {
       if (ingredient.imageUrl == null || ingredient.imageUrl!.isEmpty) {
-        ingredient.imageUrl =
-            ImageService.getMealDbImage(ingredient.nom);
+        ingredient.imageUrl = _defaultIngredientImage(ingredient.nom);
       }
     }
   } catch (e) {
@@ -132,7 +140,7 @@ Future<void> fetchIngredients() async {
 
     try {
       if (ingredient.imageUrl == null || ingredient.imageUrl!.isEmpty) {
-        ingredient.imageUrl = ImageService.getMealDbImage(ingredient.nom);
+        ingredient.imageUrl = _defaultIngredientImage(ingredient.nom);
       }
 
       await _service.addIngredient(ingredient);
