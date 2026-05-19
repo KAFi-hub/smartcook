@@ -19,7 +19,7 @@ class Recipe {
 
     static async findAllByUserId(userId) {
         const [rows] = await db.query(
-            "SELECT * FROM recette WHERE idUtilisateur = ? ORDER BY id DESC",
+            "SELECT * FROM recette WHERE idUtilisateur = ? ORDER BY scoreCompatibilite DESC, id DESC",
             [userId]
         );
         return rows;

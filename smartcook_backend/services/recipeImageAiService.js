@@ -3,8 +3,15 @@ const path = require('path');
 const axios = require('axios');
 
 const imagesDir = path.join(__dirname, '..', 'public', 'recipe-images');
-// Image par défaut si TOUT échoue
-const absoluteFallback = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop";
+const usedImageUrls = new Set();
+
+const http = axios.create({
+    timeout: 20000,
+    headers: {
+        "User-Agent": "SmartCook/1.0 (recipe image downloader)",
+        "Accept": "application/json,image/*,*/*"
+    }
+});
 
 const slugify = (text) => {
     return String(text || "recipe")
@@ -16,64 +23,139 @@ const slugify = (text) => {
         .slice(0, 50);
 };
 
-// Utilisation de LoremFlickr (Plus stable qu'Unsplash pour les requêtes sans clé API)
-const getFallbackImageUrl = (keyword) => {
-    const cleanKeyword = encodeURIComponent(keyword.split(' ').slice(0, 2).join(','));
-    return `https://loremflickr.com/800/600/food,${cleanKeyword}/all`;
+const imageExtension = (mimeType = "") => {
+    if (mimeType.includes("png")) return "png";
+    if (mimeType.includes("webp")) return "webp";
+    return "jpg";
 };
 
-const generateWithPollinations = async (prompt) => {
-    // Suppression du modèle 'flux' qui cause des erreurs 402 (payant)
-    // On utilise le modèle par défaut de Pollinations (gratuit)
-    const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}&width=800&height=600&nologo=true`;
-    
-    console.log("Tentative Pollinations...");
-    const response = await axios.get(imageUrl, {
-        responseType: 'arraybuffer',
-        timeout: 25000 // 25 secondes
+const cleanSearchText = (text) => {
+    return String(text || "")
+        .replace(/professional|realistic|food photography|gourmet plating|close up|highly detailed/gi, " ")
+        .replace(/single finished dish|on a plate|natural light|no text|no logo/gi, " ")
+        .replace(/[^\p{L}\p{N}\s]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+};
+
+const getSearchQueries = (recipe) => {
+    const promptQuery = cleanSearchText(recipe.imagePrompt);
+    const nameQuery = cleanSearchText(recipe.nom);
+
+    return [
+        promptQuery && `${promptQuery} food`,
+        nameQuery && `${nameQuery} plat cuisine`,
+        nameQuery && `${nameQuery} food`,
+        "chicken rice onion dish",
+        "cooked chicken rice plate"
+    ].filter(Boolean);
+};
+
+const searchOpenverse = async (query) => {
+    const response = await http.get("https://api.openverse.org/v1/images/", {
+        params: {
+            q: query,
+            page_size: 20,
+            mature: false,
+            categories: "photograph"
+        }
     });
 
-    return Buffer.from(response.data);
+    return (response.data?.results || [])
+        .map(item => item.url || item.thumbnail)
+        .filter(Boolean);
 };
 
-exports.generateRecipeImage = async (recipe, req) => {
-    const visualKeyword = recipe.nom || "cooking";
-    const fileName = `${slugify(visualKeyword)}-${Date.now()}.jpg`;
+const searchWikimedia = async (query) => {
+    const response = await http.get("https://commons.wikimedia.org/w/api.php", {
+        params: {
+            action: "query",
+            generator: "search",
+            gsrsearch: `${query} food`,
+            gsrnamespace: 6,
+            gsrlimit: 20,
+            prop: "imageinfo",
+            iiprop: "url|mime",
+            iiurlwidth: 900,
+            format: "json",
+            origin: "*"
+        }
+    });
+
+    return Object.values(response.data?.query?.pages || {})
+        .flatMap(page => page.imageinfo || [])
+        .filter(info => String(info.mime || "").startsWith("image/"))
+        .map(info => info.thumburl || info.url)
+        .filter(Boolean);
+};
+
+const downloadImage = async (imageUrl) => {
+    const response = await http.get(imageUrl, {
+        responseType: "arraybuffer",
+        maxRedirects: 5,
+        headers: { Accept: "image/*,*/*" }
+    });
+
+    const mimeType = response.headers["content-type"] || "";
+
+    if (!mimeType.startsWith("image/")) {
+        throw new Error(`URL ne retourne pas une image (${mimeType || "type inconnu"})`);
+    }
+
+    return {
+        buffer: Buffer.from(response.data),
+        mimeType
+    };
+};
+
+const findRealRecipeImage = async (recipe, index) => {
+    const queries = getSearchQueries(recipe);
+
+    for (const query of queries) {
+        console.log(`Recherche vraie photo pour "${recipe.nom}" avec: ${query}`);
+
+        const candidates = [
+            ...await searchOpenverse(query).catch(error => {
+                console.error("Openverse indisponible:", error.message);
+                return [];
+            }),
+            ...await searchWikimedia(query).catch(error => {
+                console.error("Wikimedia indisponible:", error.message);
+                return [];
+            })
+        ].filter(url => !usedImageUrls.has(url));
+
+        const orderedCandidates = [
+            ...candidates.slice(index),
+            ...candidates.slice(0, index)
+        ];
+
+        for (const imageUrl of orderedCandidates.slice(0, 8)) {
+            try {
+                const image = await downloadImage(imageUrl);
+                usedImageUrls.add(imageUrl);
+                console.log(`Photo trouvee pour "${recipe.nom}"`);
+                return image;
+            } catch (error) {
+                console.error("Image candidate ignoree:", error.message);
+            }
+        }
+    }
+
+    throw new Error(`Aucune vraie photo trouvee pour ${recipe.nom}`);
+};
+
+exports.generateRecipeImage = async (recipe, req, index) => {
+    const visualKeyword = recipe.nom || "recipe";
+
+    await fs.mkdir(imagesDir, { recursive: true });
+
+    const image = await findRealRecipeImage(recipe, index);
+    const ext = imageExtension(image.mimeType);
+    const fileName = `${slugify(visualKeyword)}-${index}-${Date.now()}.${ext}`;
     const filePath = path.join(imagesDir, fileName);
     const publicUrl = `${req.protocol}://${req.get('host')}/recipe-images/${fileName}`;
 
-    try {
-        await fs.mkdir(imagesDir, { recursive: true });
-
-        // 1. Tenter Pollinations (IA)
-        try {
-            const imageBuffer = await generateWithPollinations(recipe.imagePrompt || recipe.nom);
-            if (imageBuffer) {
-                await fs.writeFile(filePath, imageBuffer);
-                console.log(`✅ Image IA générée pour: ${recipe.nom}`);
-                return publicUrl;
-            }
-        } catch (error) {
-            console.error(`❌ Échec IA pour ${recipe.nom}: ${error.message}`);
-        }
-
-        // 2. Tenter LoremFlickr (Image réelle de nourriture)
-        // C'est beaucoup plus fiable que l'IA
-        try {
-            console.log(`🔄 Utilisation du fallback pour: ${recipe.nom}`);
-            const fallbackUrl = getFallbackImageUrl(recipe.nom);
-            const response = await axios.get(fallbackUrl, { responseType: 'arraybuffer', timeout: 10000 });
-            
-            await fs.writeFile(filePath, Buffer.from(response.data));
-            return publicUrl;
-        } catch (error) {
-            console.error(`❌ Échec Fallback pour ${recipe.nom}`);
-            return absoluteFallback;
-        }
-
-    } catch (error) {
-        console.error("Erreur critique image:", error.message);
-        return absoluteFallback;
-    }
+    await fs.writeFile(filePath, image.buffer);
+    return publicUrl;
 };
