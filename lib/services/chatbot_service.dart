@@ -53,6 +53,8 @@ class ChatbotService {
     return ChatbotResponse(reply: _mockReply(message));
   }
 
+   
+
   Future<List<ChatConversationSummary>> getConversations({
     String? token,
   }) async {
@@ -190,6 +192,7 @@ class LoadedChatConversation {
   }
 }
 
+
 class LoadedChatMessage {
   final String role;
   final String content;
@@ -201,6 +204,7 @@ class LoadedChatMessage {
     this.createdAt,
   });
 
+
   factory LoadedChatMessage.fromJson(dynamic json) {
     final data = json as Map<String, dynamic>;
 
@@ -211,3 +215,6 @@ class LoadedChatMessage {
     );
   }
 }
+
+
+
