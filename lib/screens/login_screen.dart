@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
+// Ajouté : permet de sauvegarder le token localement
+// pour le récupérer après un refresh ou une réouverture de l'application
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import 'register_screen.dart';
@@ -8,7 +13,6 @@ import '../services/ingredient_service.dart';
 import '../providers/ingredient_provider.dart';
 import 'home_screen.dart';
 import '../services/api_service.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,38 +63,51 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result != null && result.containsKey('token')) {
       final token = result['token'];
+
+      print("LOGIN RESULT: $result");
+      print("USER FROM LOGIN: ${result['user']}");
+      print("TOKEN FROM LOGIN: ${result['token']}");
+
+      
+
+
+      // --- 1. TA LOGIQUE : Sauvegarder le token localement ---
+      // Cela permet de garder l'utilisateur connecté après refresh ou fermeture de l'app
+
+      final prefs = await SharedPreferences.getInstance();
+
+        // Ajouté : sauvegarde du token reçu depuis le backend
+  // Grâce à ça, le token ne disparaît pas après un refresh ou une fermeture
+
   
+      await prefs.setString('token', token);
 
-print("LOGIN RESULT: $result");
-print("USER FROM LOGIN: ${result['user']}");
-print("TOKEN FROM LOGIN: ${result['token']}");
 
-  final ingredientService = IngredientService();
-  ingredientService.setToken(token);
+ //  on donne le token à IngredientService
+  // pour les requêtes liées à l'inventaire
+  
+      final ingredientService = IngredientService();
+      ingredientService.setToken(token);
 
-  //  CHANGEMENT 2 : création dyal ApiService
-  final apiService = ApiService();
 
-  //  CHANGEMENT 3 : stockage dyal token f ApiService
-  // bach les autres requêtes API yقدرو يستعملو نفس token
-  apiService.setToken(token);
-      
 
+      final apiService = ApiService();
+      apiService.setToken(token);
+
+      // Réinitialiser et charger les ingrédients de l'inventaire
       final ingredientProvider = Provider.of<IngredientProvider>(
-  context,
-  listen: false,
-);
+        context,
+        listen: false,
+      );
+      ingredientProvider.clearData();
+      await ingredientProvider.fetchIngredients();
 
-ingredientProvider.clearData();
-
-await ingredientProvider.fetchIngredients();
-     
-      
       showMessage("Login success! Welcome ${result['user']?['nom'] ?? ''}");
-      
+
+      // Navigation vers HomeScreen en passant le résultat au besoin
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen(result : result )),
+        MaterialPageRoute(builder: (context) => HomeScreen(result: result)),
       );
     } else {
       showMessage(result?['message'] ?? "Login failed", isError: true);
@@ -117,10 +134,7 @@ await ingredientProvider.fetchIngredients();
           children: [
             Icon(icon, size: 22),
             const SizedBox(width: 10),
-            Text(
-              text,
-              style: const TextStyle(fontSize: 18),
-            ),
+            Text(text, style: const TextStyle(fontSize: 18)),
           ],
         ),
       ),
@@ -213,10 +227,7 @@ await ingredientProvider.fetchIngredients();
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Password",
-                        style: TextStyle(fontSize: 19),
-                      ),
+                      const Text("Password", style: TextStyle(fontSize: 19)),
                       Text(
                         "Forgot?",
                         style: TextStyle(
@@ -258,16 +269,11 @@ await ingredientProvider.fetchIngredients();
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFB5C3B8),
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFFB5C3B8)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: green,
-                          width: 1.5,
-                        ),
+                        borderSide: BorderSide(color: green, width: 1.5),
                       ),
                     ),
                   ),

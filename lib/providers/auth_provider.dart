@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 
@@ -9,6 +11,7 @@ class AuthProvider with ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuth => _user != null;
+  String? get token => _user?.token;
 
   // LOGIN
   Future<bool> login(String email, String password) async {
@@ -20,14 +23,19 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
 
     if (result != null && result['token'] != null) {
+      final token = result['token'];
+
       _user = UserModel.fromJson(result['user']);
 
       _user = UserModel(
         id: _user!.id,
         nom: _user!.nom,
         email: _user!.email,
-        token: result['token'],
+        token: token,
       );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
 
       notifyListeners();
       return true;
@@ -47,12 +55,17 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
 
     if (result != null && result['token'] != null) {
+      final token = result['token'];
+
       _user = UserModel(
-        id: result['userId'],
+        id: result['userId'] ?? result['user']?['id'],
         nom: nom,
         email: email,
-        token: result['token'],
+        token: token,
       );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
 
       notifyListeners();
       return true;
@@ -62,8 +75,30 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  void logout() {
+  // Charger le token au démarrage
+  Future<void> loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('token');
+
+    if (savedToken != null) {
+      _user = UserModel(
+        id: 0,
+        nom: '',
+        email: '',
+        token: savedToken,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  // LOGOUT
+  Future<void> logout() async {
     _user = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+
     notifyListeners();
   }
 }

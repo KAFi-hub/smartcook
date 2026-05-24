@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       HomePage(result: widget.result, onNavigate: onTabTapped),
       const InventoryPage(),
-      const BarcodeScanScreen(),
+      const ScanPage(),
       const RecipesPage(),
       const ListPage(),
 
@@ -581,6 +581,8 @@ class SuggestedRecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl.trim().isNotEmpty;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -607,26 +609,17 @@ class SuggestedRecipeCard extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
-                      child: Image.network(
-                        imageUrl,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 160,
-                            width: double.infinity,
-                            color: const Color(0xFFEEEEEE),
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_not_supported,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      child: hasImage
+                          ? Image.network(
+                              imageUrl,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const RecipeImagePlaceholder();
+                              },
+                            )
+                          : const RecipeImagePlaceholder(),
                     ),
 
                     Positioned(
@@ -707,6 +700,26 @@ class SuggestedRecipeCard extends StatelessWidget {
         ),
 
       ],
+    );
+  }
+}
+
+class RecipeImagePlaceholder extends StatelessWidget {
+  const RecipeImagePlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 160,
+      width: double.infinity,
+      color: const Color(0xFFEEEEEE),
+      child: const Center(
+        child: Icon(
+          Icons.restaurant_menu,
+          size: 40,
+          color: Colors.grey,
+        ),
+      ),
     );
   }
 }

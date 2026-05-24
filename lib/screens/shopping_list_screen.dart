@@ -277,32 +277,6 @@ class _ListPageState extends State<ListPage> {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      floatingActionButton: Container(
-        width: 68,
-        height: 68,
-        decoration: BoxDecoration(
-          color: primaryGreen,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.18),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: IconButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("AI shopping assistant will be added later"),
-              ),
-            );
-          },
-          icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 30),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -683,12 +657,7 @@ class SuggestionCard extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(28),
-            image: const DecorationImage(
-              image: NetworkImage(
-                "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1200",
-              ),
-              fit: BoxFit.cover,
-            ),
+            color: const Color(0xFF0F5D3B),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.10),

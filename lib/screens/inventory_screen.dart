@@ -279,6 +279,15 @@ Widget _buildCard(Ingredient ingredient) {
                       height: 140,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Container(
+                        height: 140,
+                        width: double.infinity,
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                        ),
+                      ),
                     )
                   : Container(
                       height: 140,

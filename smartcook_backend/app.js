@@ -1,15 +1,16 @@
 const express = require('express');
 const cors = require('cors');
+
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-const inventoryRoutes = require('./routes/inventoryRoutes'); 
-const alimentRoutes = require('./routes/alimentRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
+const recipeRoutes = require('./routes/recipeRoutes');
+const shoppingRoutes = require('./routes/shoppingRoutes');
 const chatRoutes = require('./routes/chatRoutes');
-
+const alimentRoutes = require('./routes/alimentRoutes');
 
 const app = express();
 
-// 1. Middlewares de base
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -17,7 +18,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// 2. Middleware de Logging (pour voir les requêtes de Flutter dans ta console)
+
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     if (req.body && Object.keys(req.body).length > 0) {
@@ -26,18 +27,19 @@ app.use((req, res, next) => {
     next();
 });
 
-// 3. Routes API
 app.use('/api/auth', authRoutes);
-app.use('/api/inventory', inventoryRoutes); 
 app.use('/api/user', userRoutes);
-app.use('/api/aliments', alimentRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/recipes', recipeRoutes);
+app.use('/api/shopping', shoppingRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/chatbot', chatRoutes);
+app.use('/api/aliments', alimentRoutes);
 
 app.get('/', (req, res) => {
     res.send("SmartCook API is running...");
 });
 
-// 4. Gestion des erreurs
 app.use((err, req, res, next) => {
     console.error("SERVER ERROR:", err);
     res.status(500).json({
@@ -45,8 +47,5 @@ app.use((err, req, res, next) => {
         error: err.message
     });
 });
-
-
-
 
 module.exports = app;

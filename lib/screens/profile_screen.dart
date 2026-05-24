@@ -420,15 +420,6 @@ Navigator.pushAndRemoveUntil(
         ),
       ),
 
-  floatingActionButton: FloatingActionButton.extended(
-  backgroundColor: Colors.orange,
-  onPressed: () {},
-  label: const Text(
-    "AI Ask",
-    style: TextStyle(color: Colors.black),
-  ),
-  icon: const Icon(Icons.auto_awesome, color: Colors.black),
-),
 );
 
    
