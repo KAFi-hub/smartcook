@@ -16,7 +16,7 @@ class IngredientService {
 
   Map<String, String> _getHeaders() {
     if (_token == null || _token!.isEmpty) {
-      throw Exception('Token manquant. Veuillez vous reconnecter.');
+      throw Exception('Missing token. Please log in again.');
     }
 
     return {
@@ -37,10 +37,10 @@ class IngredientService {
     }
 
     if (response.statusCode == 401) {
-      throw Exception('Session expirée. Veuillez vous reconnecter.');
+      throw Exception('Session expired. Please log in again.');
     }
 
-    throw Exception('Erreur chargement inventaire: ${response.statusCode}');
+    throw Exception('Error loading inventory: ${response.statusCode}');
   }
 
   Future<void> addIngredient(Ingredient ingredient) async {
@@ -51,7 +51,7 @@ class IngredientService {
     );
 
     if (response.statusCode != 201) {
-      throw Exception('Erreur ajout aliment: ${response.statusCode}');
+      throw Exception('Error adding ingredient: ${response.statusCode}');
     }
   }
 
@@ -63,7 +63,7 @@ class IngredientService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur mise à jour aliment: ${response.statusCode}');
+      throw Exception('Error updating ingredient: ${response.statusCode}');
     }
   }
 
@@ -74,7 +74,7 @@ class IngredientService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur suppression aliment: ${response.statusCode}');
+      throw Exception('Error deleting ingredient: ${response.statusCode}');
     }
   }
 }

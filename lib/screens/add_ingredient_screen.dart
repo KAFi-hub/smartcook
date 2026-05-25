@@ -124,7 +124,7 @@ final data = await ApiService().analyzeIngredient(
       ).generateWithAi();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ingrédient ajouté avec succès !"), backgroundColor: Colors.green)
+        const SnackBar(content: Text("Ingredient added successfully!"), backgroundColor: Colors.green)
       );
       if (widget.onSave != null) {
         widget.onSave!();
@@ -133,7 +133,7 @@ final data = await ApiService().analyzeIngredient(
       }
     }else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erreur lors de la sauvegarde"), backgroundColor: Colors.red)
+        const SnackBar(content: Text("Error while saving"), backgroundColor: Colors.red)
       );
     }
   }

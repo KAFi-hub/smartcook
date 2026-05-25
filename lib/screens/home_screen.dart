@@ -9,6 +9,7 @@ import 'inventory_screen.dart';
 import 'add_ingredient_screen.dart';
 import 'barcode_scan_screen.dart';
 import 'ai_scan_screen.dart';
+import 'recipe_detail_screen.dart';
 import 'recipe_results_screen.dart';
 import 'shopping_list_screen.dart';
 
@@ -226,7 +227,7 @@ class HomePage extends StatelessWidget {
                 child: HomeAlertCard(
                   title: "Missing",
                   number: "$missingCount",
-                  subtitle: "For tonight's Pasta",
+                  subtitle: "For this week's recipes",
                   icon: Icons.shopping_basket_outlined,
                   backgroundColor: const Color(0xFFFF9F43),
                   contentColor: const Color(0xFF5A2200),
@@ -331,7 +332,17 @@ class HomePage extends StatelessWidget {
               badge:
                   "${suggestedRecipe.difficulte} • ${suggestedRecipe.tempsPreparation} min",
               imageUrl: suggestedRecipe.imageUrl ?? '',
-              onTap: () => onNavigate(3),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => RecipeDetailScreen(
+                      recipe: suggestedRecipe,
+                      onNavigate: onNavigate,
+                    ),
+                  ),
+                );
+              },
             ),
 
           const SizedBox(height: 40),

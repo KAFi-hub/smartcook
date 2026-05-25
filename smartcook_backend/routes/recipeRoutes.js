@@ -7,6 +7,9 @@ const Recipe = require('../models/Recipe');
 // Route pour forcer la génération (quand l'utilisateur clique sur "Rafraîchir")
 router.post('/recipes/refresh', authMiddleware, recipeController.refreshRecipes);
 
+// Route pour préparer une recette et mettre à jour l'inventaire
+router.post('/recipes/:id/prepare', authMiddleware, recipeController.prepareRecipe);
+
 // Route pour afficher les recettes déjà stockées
 router.get('/recipes', authMiddleware, async (req, res) => {
     try {

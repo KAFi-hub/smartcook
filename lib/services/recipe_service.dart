@@ -23,7 +23,7 @@ class RecipeService {
       return body.map((item) => Recipe.fromJson(item)).toList();
     }
 
-    throw Exception("Erreur lors du chargement des recettes: ${response.body}");
+    throw Exception("Error loading recipes: ${response.body}");
   }
 
   Future<void> refreshAiRecipes(String token) async {
@@ -34,9 +34,28 @@ class RecipeService {
 
     if (response.statusCode != 200) {
       throw Exception(
-        "L'IA n'a pas pu generer de nouvelles recettes: ${response.body}",
+        "AI could not generate new recipes: ${response.body}",
       );
     }
+  }
+
+  Future<Map<String, dynamic>> prepareRecipe(String token, int recipeId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/recipes/$recipeId/prepare'),
+      headers: _headers(token),
+    );
+
+    final body = response.body.isNotEmpty
+        ? jsonDecode(response.body) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    if (response.statusCode == 200) {
+      return body;
+    }
+
+    throw Exception(
+      body['message'] ?? body['error'] ?? 'Error while preparing the recipe',
+    );
   }
 
   Future<Map<String, dynamic>> getProfile(String token) async {
@@ -49,6 +68,6 @@ class RecipeService {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
 
-    throw Exception("Erreur lors du chargement du profil: ${response.body}");
+    throw Exception("Error loading profile: ${response.body}");
   }
 }

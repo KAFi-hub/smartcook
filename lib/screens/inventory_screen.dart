@@ -485,7 +485,10 @@ Widget _buildStatusChip(Ingredient ingredient) {
   ) {
     final Map<String, List<Ingredient>> grouped = {};
 
-    List<Ingredient> filtered = ingredients;
+    List<Ingredient> filtered = ingredients.where((ingredient) {
+      return ingredient.statut.toLowerCase() != 'missing' &&
+          ingredient.quantite > 0;
+    }).toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((i) {

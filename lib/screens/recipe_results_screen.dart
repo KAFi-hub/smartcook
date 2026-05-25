@@ -68,7 +68,7 @@ class _RecipesPageState extends State<RecipesPage> {
               _buildMessageCard(provider.errorMessage!)
             else if (recipes.isEmpty)
               _buildMessageCard(
-                "Aucune recette disponible. Ajoutez au moins 2 aliments, puis genere une nouvelle liste.",
+                "No recipes available. Add at least 2 ingredients, then generate a new list.",
               )
             else
               ...recipes.map(

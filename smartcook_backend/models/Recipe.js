@@ -38,6 +38,14 @@ class Recipe {
         );
         return rows;
     }
+
+    static async findByIdForUser(id, userId) {
+        const [rows] = await db.query(
+            "SELECT * FROM recette WHERE id = ? AND idUtilisateur = ?",
+            [id, userId]
+        );
+        return rows[0] || null;
+    }
 }
 
 module.exports = Recipe;

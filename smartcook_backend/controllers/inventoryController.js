@@ -42,7 +42,7 @@ exports.getAllIngredients = async (req, res) => {
     console.error("ERREUR GET ALL INGREDIENTS:", error);
 
     res.status(500).json({
-      message: 'Erreur serveur lors de la récupération'
+      message: 'Server error while loading inventory'
     });
   }
 };
@@ -52,9 +52,9 @@ exports.addIngredient = async (req, res) => {
   try {
     const { nom, quantite, unite, type, dateExpiration } = req.body;
 
-    if (!nom || !quantite || !unite || !type) {
+    if (!nom || quantite === undefined || quantite === null || quantite === '' || !unite || !type) {
       return res.status(400).json({
-        message: 'Nom, quantité, unité et type sont obligatoires'
+        message: 'Name, quantity, unit, and type are required'
       });
     }
 
@@ -66,7 +66,7 @@ exports.addIngredient = async (req, res) => {
     const id = await Aliment.create(userId, req.body);
 
     res.status(201).json({
-      message: 'Aliment ajouté avec succès',
+      message: 'Ingredient added successfully',
       id
     });
 
@@ -74,7 +74,7 @@ exports.addIngredient = async (req, res) => {
     console.error("ADD INGREDIENT ERROR:", error);
 
     res.status(500).json({
-      message: 'Erreur serveur'
+      message: 'Server error'
     });
   }
 };
@@ -91,7 +91,7 @@ exports.updateIngredient = async (req, res) => {
     // vérifie si utilisateur connecté
     if (!userId) {
       return res.status(401).json({
-        message: 'Non autorisé'
+        message: 'Unauthorized'
       });
     }
 
@@ -103,7 +103,7 @@ exports.updateIngredient = async (req, res) => {
     // message plus précis et sécurisé
     if (!belongsToUser) {
       return res.status(403).json({
-        message: 'Cet aliment ne vous appartient pas'
+        message: 'This ingredient does not belong to you'
       });
     }
 
@@ -115,11 +115,11 @@ exports.updateIngredient = async (req, res) => {
 
     if (updated) {
       res.json({
-        message: 'Aliment mis à jour avec succès'
+        message: 'Ingredient updated successfully'
       });
     } else {
       res.status(404).json({
-        message: 'Aliment non trouvé'
+        message: 'Ingredient not found'
       });
     }
 
@@ -127,7 +127,7 @@ exports.updateIngredient = async (req, res) => {
     console.error("UPDATE INGREDIENT ERROR:", error);
 
     res.status(500).json({
-      message: 'Erreur serveur'
+      message: 'Server error'
     });
   }
 };
@@ -142,11 +142,11 @@ exports.deleteIngredient = async (req, res) => {
 
     if (deleted) {
       res.json({
-        message: 'Aliment supprimé avec succès'
+        message: 'Ingredient deleted successfully'
       });
     } else {
       res.status(404).json({
-        message: 'Aliment non trouvé'
+        message: 'Ingredient not found'
       });
     }
 
@@ -154,7 +154,7 @@ exports.deleteIngredient = async (req, res) => {
     console.error("DELETE INGREDIENT ERROR:", error);
 
     res.status(500).json({
-      message: 'Erreur serveur'
+      message: 'Server error'
     });
   }
 };

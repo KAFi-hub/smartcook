@@ -51,9 +51,9 @@ Future<Map<String, dynamic>> analyzeIngredient(String name, String type) async {
     "proteines": 0,
     "glucides": 0,
     "lipides": 0,
-    "allergenes": "Non renseigné",
+    "allergenes": "Not provided",
     "categorie": type,
-    "marque": "Inconnu",
+    "marque": "Unknown",
     "imageUrl": ""
   };
 }

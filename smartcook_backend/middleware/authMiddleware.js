@@ -19,6 +19,6 @@ module.exports = (req, res, next) => {
     } catch (error) {
         // --- CE LOG VA DIRE EXACTEMENT LE PROBLÈME ---
         console.log("ERREUR JWT DÉTAILLÉE :", error.message); 
-        res.status(401).json({ message: 'Authentification échouée (Token invalide)' });
+        res.status(401).json({ message: 'Authentication failed (invalid token)' });
     }
 };
