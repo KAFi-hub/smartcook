@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes'); 
 const alimentRoutes = require('./routes/alimentRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
-
 
 const app = express();
 
@@ -17,6 +17,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/recipe-images', express.static(path.join(__dirname, 'public', 'recipe-images')));
 // 2. Middleware de Logging (pour voir les requêtes de Flutter dans ta console)
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -45,8 +46,5 @@ app.use((err, req, res, next) => {
         error: err.message
     });
 });
-
-
-
 
 module.exports = app;
