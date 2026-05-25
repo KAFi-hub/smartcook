@@ -11,7 +11,6 @@ import 'barcode_scan_screen.dart';
 import 'ai_scan_screen.dart';
 import 'recipe_results_screen.dart';
 import 'shopping_list_screen.dart';
-import 'profile_screen.dart';
 
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
@@ -24,9 +23,10 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
+
+  late final List<Widget> pages;
 
   @override
   void initState() {
@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Exécute le chargement des ingrédients
     // après l'initialisation complète du widget
     Future.microtask(() async {
+
       // Récupération du provider des ingrédients
       final ingredientProvider = Provider.of<IngredientProvider>(
         context,
@@ -48,17 +49,73 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       // Charger les ingrédients depuis l'API/backend
+      final token = widget.result?['token']?.toString();
+      if (token != null && token.isNotEmpty) {
+        recipeProvider.setToken(token);
+      }
+
       await ingredientProvider.fetchIngredients();
 
       // Générer les suggestions de recettes
       // selon les ingrédients disponibles
-      recipeProvider.generateSuggestions(ingredientProvider.ingredients);
+      await recipeProvider.loadData(token);
     });
+
+    // Liste des pages utilisées dans IndexedStack
+    pages = [
+
+      // Index 0 → Home
+      HomePage(
+
+        // Données utilisateur reçues après login
+        result: widget.result,
+
+        // Fonction permettant de changer d'onglet
+        onNavigate: (index) => onTabTapped(index),
+      ),
+
+      // Index 1 → Inventory
+      const InventoryPage(),
+
+      // Index 2 → Barcode Scanner
+      const BarcodeScanScreen(),
+
+      // Index 3 → AI Scan
+      //const AiScanScreen(),
+
+      // Index 4 → Recipes
+      RecipesPage(
+        token: widget.result?['token']?.toString(),
+        onNavigate: onTabTapped,
+      ),
+
+      // Index 5 → Shopping List
+      const ListPage(),
+
+      // Index 6 → Add Ingredient
+      AddIngredientScreen(
+
+        // Callback exécuté après sauvegarde
+        onSave: () async {
+
+          // Recharge les ingrédients
+          // pour mettre à jour Inventory automatiquement
+          await Provider.of<IngredientProvider>(
+            context,
+            listen: false,
+          ).fetchIngredients();
+
+          // Retour automatique vers Inventory
+          onTabTapped(1);
+        },
+      ),
+    ];
   }
 
   // Fonction utilisée pour changer la page affichée
   void onTabTapped(int index) {
     setState(() {
+
       // Met à jour l'index courant
       currentIndex = index;
     });
@@ -66,52 +123,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      HomePage(result: widget.result, onNavigate: onTabTapped),
-      const InventoryPage(),
-      const BarcodeScanScreen(),
-      const RecipesPage(),
-      const ListPage(),
-
-      AddIngredientScreen(
-        onSave: () async {
-          await Provider.of<IngredientProvider>(
-            context,
-            listen: false,
-          ).fetchIngredients();
-
-          onTabTapped(1);
-        },
-      ),
-
-      const AiScanScreen(),
-
-      ProfileScreen(
-        token: widget.result?['token'] ?? '',
-      ),
-    ];
-
-    final bottomNavIndex = currentIndex <= 4 ? currentIndex : 0;
-
     return Scaffold(
+
+      // Couleur de fond générale
       backgroundColor: const Color(0xFFF8F9FA),
 
-      appBar: CustomAppBar(
-        onProfileTap: () {
-          final token = widget.result?['token'];
+      // AppBar personnalisée
+      appBar: const CustomAppBar(),
 
-          if (token == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Token introuvable"),
-              ),
-            );
-            return;
-          }
-
-          onTabTapped(7);
-        },
-      ), // IndexedStack garde les pages en mémoire
+      // IndexedStack garde les pages en mémoire
       // contrairement à Navigator.push
       body: IndexedStack(
         index: currentIndex,
@@ -120,13 +140,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Bottom navigation bar
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: bottomNavIndex,
+        currentIndex: currentIndex,
         onTap: onTabTapped,
       ),
     );
   }
 }
-
 class HomePage extends StatelessWidget {
   final Map<String, dynamic>? result;
   final Function(int) onNavigate;
@@ -238,7 +257,14 @@ class HomePage extends StatelessWidget {
                 child: QuickActionButton(
                   title: "Scan barcode",
                   icon: Icons.qr_code_scanner,
-                  onTap: () => onNavigate(2),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BarcodeScanScreen(),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -250,7 +276,12 @@ class HomePage extends StatelessWidget {
             title: "AI Scan Fridge",
             icon: Icons.auto_awesome,
             isLarge: true,
-            onTap: () => onNavigate(6),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiScanScreen()),
+              );
+            },
           ),
 
           const SizedBox(height: 16),
@@ -271,7 +302,12 @@ class HomePage extends StatelessWidget {
                 child: QuickActionButton(
                   title: "Shopping list",
                   icon: Icons.list_alt,
-                  onTap: () => onNavigate(4),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ListPage()),
+                    );
+                  },
                 ),
               ),
             ],
@@ -294,13 +330,8 @@ class HomePage extends StatelessWidget {
               subtitle: suggestedRecipe.benefices,
               badge:
                   "${suggestedRecipe.difficulte} • ${suggestedRecipe.tempsPreparation} min",
-              imageUrl: suggestedRecipe.imageUrl ?? "",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RecipesPage()),
-                );
-              },
+              imageUrl: suggestedRecipe.imageUrl ?? '',
+              onTap: () => onNavigate(3),
             ),
 
           const SizedBox(height: 40),

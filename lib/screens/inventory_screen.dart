@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../providers/ingredient_provider.dart';
+import '../providers/recipe_provider.dart';
 import '../models/ingredient_model.dart';
 import 'add_ingredient_screen.dart';
 
@@ -404,6 +405,11 @@ content: Text("Do you want to delete ${ingredient.nom}?"),
               context,
               listen: false,
             ).deleteIngredient(ingredient.id!);
+
+            await Provider.of<RecipeProvider>(
+              context,
+              listen: false,
+            ).generateWithAi();
 
             _loadIngredients();
           },

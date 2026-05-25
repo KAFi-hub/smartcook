@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcook/providers/ingredient_provider.dart';
+import 'package:smartcook/providers/recipe_provider.dart';
 import 'package:smartcook/services/api_service.dart';
 import 'package:smartcook/services/image_service.dart';
 import '../widgets/custom_app_bar.dart';
@@ -117,6 +118,11 @@ final data = await ApiService().analyzeIngredient(
 
     bool success = await ApiService().saveIngredient(data);
     if (success) {
+      await Provider.of<RecipeProvider>(
+        context,
+        listen: false,
+      ).generateWithAi();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ingrédient ajouté avec succès !"), backgroundColor: Colors.green)
       );

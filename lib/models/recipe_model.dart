@@ -2,6 +2,7 @@ class Recipe {
   final int id;
   final int idUtilisateur;
   final String nom;
+  final String imageUrl;
   final String typeRepas;
   final int tempsPreparation;
   final String difficulte;
@@ -20,6 +21,7 @@ class Recipe {
     required this.id,
     required this.idUtilisateur,
     required this.nom,
+    required this.imageUrl,
     required this.typeRepas,
     required this.tempsPreparation,
     required this.difficulte,
@@ -40,6 +42,7 @@ class Recipe {
       id: json['id'],
       idUtilisateur: json['idUtilisateur'],
       nom: json['nom'] ?? '',
+      imageUrl: json['imageUrl'] ?? 'https://via.placeholder.com/600',
       typeRepas: json['typeRepas'] ?? '',
       tempsPreparation: json['tempsPreparation'] ?? 0,
       difficulte: json['difficulte'] ?? '',
