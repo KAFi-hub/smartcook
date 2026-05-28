@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../providers/ingredient_provider.dart';
+import '../providers/recipe_provider.dart';
 import '../models/ingredient_model.dart';
 import 'add_ingredient_screen.dart';
 
@@ -405,6 +406,11 @@ content: Text("Do you want to delete ${ingredient.nom}?"),
               listen: false,
             ).deleteIngredient(ingredient.id!);
 
+            await Provider.of<RecipeProvider>(
+              context,
+              listen: false,
+            ).generateWithAi();
+
             _loadIngredients();
           },
           child: const Text(
@@ -479,7 +485,10 @@ Widget _buildStatusChip(Ingredient ingredient) {
   ) {
     final Map<String, List<Ingredient>> grouped = {};
 
-    List<Ingredient> filtered = ingredients;
+    List<Ingredient> filtered = ingredients.where((ingredient) {
+      return ingredient.statut.toLowerCase() != 'missing' &&
+          ingredient.quantite > 0;
+    }).toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((i) {

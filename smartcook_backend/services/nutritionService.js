@@ -53,7 +53,7 @@ exports.analyzeIngredient = async (name, type) => {
       allergenes:
   product.allergens ||
   product.allergens_tags?.join(', ') ||
-  "Non renseigné",
+  "Not provided",
 calories: Math.round(nutriments['energy-kcal_100g'] || 0),
 proteines: Number((nutriments.proteins_100g || 0).toFixed(1)),
 glucides: Number((nutriments.carbohydrates_100g || 0).toFixed(1)),
@@ -62,13 +62,13 @@ lipides: Number((nutriments.fat_100g || 0).toFixed(1)),
           ? type
           : product.categories
             ? product.categories.split(',')[0]
-            : "Inconnu",
+            : "Unknown",
 
         marque: isNaturalType
-          ? "Inconnu"
+          ? "Unknown"
           : product.brands
             ? product.brands.split(',')[0]
-            : "Inconnu",
+            : "Unknown",
 
         imageUrl: isNaturalType
           ? image || ""
@@ -83,9 +83,9 @@ lipides: Number((nutriments.fat_100g || 0).toFixed(1)),
       proteines: 0,
       glucides: 0,
       lipides: 0,
-      allergenes: "Non renseigné",
-      categorie: type || "Inconnu",
-      marque: "Inconnu",
+      allergenes: "Not provided",
+      categorie: type || "Unknown",
+      marque: "Unknown",
       imageUrl: image || ""
     };
 
@@ -99,9 +99,9 @@ lipides: Number((nutriments.fat_100g || 0).toFixed(1)),
       proteines: 0,
       glucides: 0,
       lipides: 0,
-      allergenes: "Non renseigné",
-      categorie: type || "Inconnu",
-      marque: "Inconnu",
+      allergenes: "Not provided",
+      categorie: type || "Unknown",
+      marque: "Unknown",
       imageUrl: image || ""
     };
   }

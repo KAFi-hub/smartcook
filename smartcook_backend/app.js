@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 // Import de toutes les routes (Fusion HEAD + main)
 const authRoutes      = require('./routes/authRoutes');
@@ -8,7 +9,7 @@ const inventoryRoutes = require('./routes/inventoryRoutes');
 const recipeRoutes    = require('./routes/recipeRoutes');
 const shoppingRoutes  = require('./routes/shoppingRoutes');
 const chatRoutes      = require('./routes/chatRoutes');
-const alimentRoutes   = require('./routes/alimentRoutes'); // Ajouté par l'équipe
+const alimentRoutes   = require('./routes/alimentRoutes'); // Ajouté par l'équipeconst recipeRoutes = require('./routes/recipeRoutes');
 
 const app = express();
 
@@ -20,8 +21,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// 2. Middleware de Logging (Propre et lisible)
+app.use('/recipe-images', express.static(path.join(__dirname, 'public', 'recipe-images')));
+// 2. Middleware de Logging (pour voir les requêtes de Flutter dans ta console)
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     if (req.body && Object.keys(req.body).length > 0) {
