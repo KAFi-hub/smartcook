@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../services/auth_service.dart';
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   UserModel? _user;
@@ -13,7 +13,6 @@ class AuthProvider with ChangeNotifier {
   bool get isAuth => _user != null;
   String? get token => _user?.token;
 
-  // LOGIN
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -24,13 +23,12 @@ class AuthProvider with ChangeNotifier {
 
     if (result != null && result['token'] != null) {
       final token = result['token'];
-
-      _user = UserModel.fromJson(result['user']);
+      final user = UserModel.fromJson(result['user']);
 
       _user = UserModel(
-        id: _user!.id,
-        nom: _user!.nom,
-        email: _user!.email,
+        id: user.id,
+        nom: user.nom,
+        email: user.email,
         token: token,
       );
 
@@ -45,7 +43,6 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  // REGISTER
   Future<bool> register(String nom, String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -75,7 +72,6 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
 
-  // Charger le token au démarrage
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     final savedToken = prefs.getString('token');
@@ -92,7 +88,6 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // LOGOUT
   Future<void> logout() async {
     _user = null;
 
