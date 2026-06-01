@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/ingredient_provider.dart';
 import '../providers/recipe_provider.dart';
 import '../models/ingredient_model.dart';
+import '../services/image_service.dart';
 import 'add_ingredient_screen.dart';
 
 class InventoryPage extends StatefulWidget {
@@ -246,6 +247,12 @@ const SizedBox(height: 16),
     );
   }
 Widget _buildCard(Ingredient ingredient) {
+  final imageUrl = ImageService.resolveIngredientImage(
+    ingredient.nom,
+    ingredient.type,
+    ingredient.imageUrl,
+  );
+
   return Container(
     margin: const EdgeInsets.only(bottom: 18),
     decoration: BoxDecoration(
@@ -276,20 +283,14 @@ Widget _buildCard(Ingredient ingredient) {
               child: ingredient.imageUrl != null &&
                       ingredient.imageUrl!.isNotEmpty
                   ? CachedNetworkImage(
-                      imageUrl: ingredient.imageUrl!,
+                      imageUrl: imageUrl,
                       height: 140,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      errorWidget: (context, url, error) =>
+                          _buildImageFallback(ingredient),
                     )
-                  : Container(
-                      height: 140,
-                      width: double.infinity,
-                      color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.image,
-                        size: 40,
-                      ),
-                    ),
+                  : _buildImageFallback(ingredient),
             ),
 
             Positioned(
@@ -381,6 +382,26 @@ Widget _buildCard(Ingredient ingredient) {
           ),
         ),
       ],
+    ),
+  );
+}
+
+Widget _buildImageFallback(Ingredient ingredient) {
+  final fallbackUrl = ImageService.getMealDbImage(ingredient.nom, ingredient.type);
+
+  return CachedNetworkImage(
+    imageUrl: fallbackUrl,
+    height: 140,
+    width: double.infinity,
+    fit: BoxFit.cover,
+    errorWidget: (context, url, error) => Container(
+      height: 140,
+      width: double.infinity,
+      color: Colors.grey[200],
+      child: const Icon(
+        Icons.image,
+        size: 40,
+      ),
     ),
   );
 }

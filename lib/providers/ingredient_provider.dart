@@ -120,10 +120,11 @@ Future<void> fetchIngredients() async {
     _ingredients = await _service.getAllIngredients();
 
     for (var ingredient in _ingredients) {
-      if (ingredient.imageUrl == null || ingredient.imageUrl!.isEmpty) {
-        ingredient.imageUrl =
-            ImageService.getMealDbImage(ingredient.nom, ingredient.type);
-      }
+      ingredient.imageUrl = ImageService.resolveIngredientImage(
+        ingredient.nom,
+        ingredient.type,
+        ingredient.imageUrl,
+      );
     }
   } catch (e) {
     _errorMessage = e.toString();
@@ -139,10 +140,11 @@ Future<void> fetchIngredients() async {
     notifyListeners();
 
     try {
-      if (ingredient.imageUrl == null || ingredient.imageUrl!.isEmpty) {
-        ingredient.imageUrl =
-            ImageService.getMealDbImage(ingredient.nom, ingredient.type);
-      }
+      ingredient.imageUrl = ImageService.resolveIngredientImage(
+        ingredient.nom,
+        ingredient.type,
+        ingredient.imageUrl,
+      );
 
       await _service.addIngredient(ingredient);
       await fetchIngredients();
@@ -210,4 +212,10 @@ Future<void> fetchIngredients() async {
 
     return grouped;
   }
+
+
+  void setToken(String token) {
+  _service.setToken(token);
+  _apiService.setToken(token);
+}
 }

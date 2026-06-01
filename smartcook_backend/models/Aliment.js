@@ -18,12 +18,12 @@ class Aliment {
       // 1. Récupérer ou créer l'inventaire lié à l'utilisateur
       const inventory = await Inventory.getOrCreate(userId);
 
-      // ✅ CORRIGÉ : Ajout de la colonne barcode dans le INSERT
+      //  CORRIGÉ : Ajout de la colonne barcode dans le INSERT
       const query = `INSERT INTO aliment 
         (idInventaire, nom, quantite, unite, type, dateExpiration, barcode,
          calories, proteines, glucides, lipides, allergenes, 
          marque, categorie, imageUrl, statut) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const quantity = toQuantity(data.quantite, 1);
 
       const values = [

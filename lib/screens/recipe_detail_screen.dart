@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smartcook/models/ingredient_model.dart';
 import 'package:smartcook/models/recipe_model.dart';
+import 'package:smartcook/providers/auth_provider.dart';
 import 'package:smartcook/providers/ingredient_provider.dart';
 import 'package:smartcook/providers/recipe_provider.dart';
+import 'package:smartcook/screens/chatbot_screen.dart';
 import 'package:smartcook/widgets/custom_app_bar.dart';
 import 'package:smartcook/widgets/custom_bottom_nav_bar.dart';
 
@@ -859,7 +861,17 @@ class _SubstitutionCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           FilledButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatbotScreen(
+                    token: context.read<AuthProvider>().token,
+                    selectedBottomNavIndex: 3,
+                  ),
+                ),
+              );
+            },
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFDFF7EA),
               foregroundColor: _kDeepGreen,

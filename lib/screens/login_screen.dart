@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import 'register_screen.dart';
-import '../services/auth_service.dart';
 import '../services/ingredient_service.dart';
 import '../providers/ingredient_provider.dart';
+import '../providers/auth_provider.dart';
 import 'home_screen.dart';
 import '../services/api_service.dart';
 
@@ -24,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   bool rememberMe = false;
-  bool isLoading = false;
   bool obscurePassword = true;
 
   void showMessage(String message, {bool isError = false}) {
@@ -50,40 +48,37 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(email, password);
 
-    // Appel backend
-    final result = await AuthService.login(email, password);
+    if (!mounted) return;
 
-    setState(() => isLoading = false);
+    if (success) {
+      final user = authProvider.user;
+      final token = authProvider.token;
 
-    if (result != null && result.containsKey('token')) {
-      final token = result['token'];
+      if (token == null || token.isEmpty) {
+        showMessage("Token introuvable", isError: true);
+        return;
+      }
 
-      print("LOGIN RESULT: $result");
-      print("USER FROM LOGIN: ${result['user']}");
-      print("TOKEN FROM LOGIN: ${result['token']}");
+     final ingredientProvider = Provider.of<IngredientProvider>(
+  context,
+  listen: false,
+);
 
-      // --- 1. TA LOGIQUE : Sauvegarder le token localement ---
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
+ingredientProvider.setToken(token);
+ingredientProvider.clearData();
+await ingredientProvider.fetchIngredients();
 
-      // --- 2. LOGIQUE ÉQUIPE : Configurer les instances de services avec le token ---
-      final ingredientService = IngredientService();
-      ingredientService.setToken(token);
+      if (!mounted) return;
 
-      final apiService = ApiService();
-      apiService.setToken(token);
+      showMessage("Login success! Welcome ${user?.nom ?? ''}");
 
-      // Réinitialiser et charger les ingrédients de l'inventaire
-      final ingredientProvider = Provider.of<IngredientProvider>(
-        context,
-        listen: false,
-      );
-      ingredientProvider.clearData();
-      await ingredientProvider.fetchIngredients();
-
-      showMessage("Login success! Welcome ${result['user']?['nom'] ?? ''}");
+      final result = {
+        'token': token,
+        'user': user?.toJson(),
+      };
 
       // Navigation vers HomeScreen en passant le résultat au besoin
       Navigator.pushReplacement(
@@ -91,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => HomeScreen(result: result)),
       );
     } else {
-      showMessage(result?['message'] ?? "Login failed", isError: true);
+      showMessage("Login failed", isError: true);
     }
   }
 
@@ -124,6 +119,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF8),
       body: SafeArea(
@@ -286,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   CustomButton(
                     text: "Login",
-                    isLoading: isLoading,
+                    isLoading: authProvider.isLoading,
                     onPressed: validateLogin,
                   ),
 

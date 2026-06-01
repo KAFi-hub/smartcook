@@ -2,6 +2,11 @@ const db = require('../config/db');
 
 class Recipe {
     static async ensureIngredientColumns() {
+        const [imageColumns] = await db.query("SHOW COLUMNS FROM recette LIKE 'imageUrl'");
+        if (imageColumns.length === 0) {
+            await db.query("ALTER TABLE recette ADD COLUMN imageUrl TEXT NULL AFTER nom");
+        }
+
         const [availableColumns] = await db.query("SHOW COLUMNS FROM recette LIKE 'ingredientsDisponibles'");
         if (availableColumns.length === 0) {
             await db.query("ALTER TABLE recette ADD COLUMN ingredientsDisponibles TEXT NULL AFTER nbPersonnes");

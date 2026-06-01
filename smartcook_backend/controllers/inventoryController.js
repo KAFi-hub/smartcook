@@ -1,4 +1,3 @@
-const db = require('../config/db');
 const Aliment = require('../models/Aliment');
 
 // Fonction centralisée de l'équipe pour récupérer proprement l'ID utilisateur
