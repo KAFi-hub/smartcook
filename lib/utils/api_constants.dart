@@ -1,17 +1,6 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConstants {
-  static String get _host {
-    if (kIsWeb) {
-      return 'localhost';
-    }
-
-    return defaultTargetPlatform == TargetPlatform.android
-        ? '10.0.2.2'
-        : 'localhost';
-  }
-
-  static String get baseUrl => 'http://$_host:3000/api';
+  static String get baseUrl =>
+      'https://smartcook-production-50ad.up.railway.app/api';
 
   // Auth
   static String get register => '$baseUrl/auth/register';
